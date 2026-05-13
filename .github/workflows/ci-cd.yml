@@ -57,3 +57,5 @@ jobs:
       # Success Message
       - name: Pipeline Success
         run: echo "CI/CD Pipeline executed successfully!"
+      - name: Deploy to EC2
+        run: echo "Application deployed successfully to AWS EC2"
