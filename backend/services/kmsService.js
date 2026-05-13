@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk');
 
 const kms = new AWS.KMS({
-  region: process.env.AWS_REGION || 'us-east-1'
+  region: process.env.AWS_REGION || 'ap-south-1'
 });
 
 const decryptSecret = async (encryptedData) => {
