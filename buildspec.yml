@@ -1,0 +1,27 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo Installing dependencies...
+      - cd backend && npm install
+      - cd ../frontend && npm install
+  build:
+    commands:
+      - echo Building frontend...
+      - cd frontend && npm run build
+      - echo Fetching secrets from KMS (Example logic)...
+      # In a real AWS environment, you would use aws kms decrypt here
+      # or rely on the application logic to decrypt at runtime as we've implemented.
+  post_build:
+    commands:
+      - echo Build completed on `date`
+artifacts:
+  files:
+    - 'backend/**/*'
+    - 'frontend/dist/**/*'
+    - 'package.json'
+    - 'appspec.yml'
+    - 'scripts/**/*'
