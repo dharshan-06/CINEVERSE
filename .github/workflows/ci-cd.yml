@@ -1,0 +1,44 @@
+name: React Node AWS KMS CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-encrypt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Backend Dependencies
+        run: |
+          npm install
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Run AWS KMS Encryption
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
+        run: |
+          node kmsEncrypt.js
+
+      - name: Build React App
+        run: |
+          npm run build
+
+      - name: CI/CD Success
+        run: echo "Pipeline executed successfully"

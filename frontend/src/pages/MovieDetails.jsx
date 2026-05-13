@@ -70,6 +70,10 @@ const MovieDetails = () => {
     if (!url) return Promise.resolve(null);
     return new Promise((resolve) => {
       const img = new Image();
+      // Add a cache buster to force a fresh request with CORS headers (prevents tainted cache issues)
+      const cacheBuster = url.includes('?') ? `&t=${Date.now()}` : `?t=${Date.now()}`;
+      const bustUrl = url + cacheBuster;
+
       img.setAttribute('crossOrigin', 'anonymous');
       img.onload = () => {
         try {
@@ -88,7 +92,7 @@ const MovieDetails = () => {
         console.warn('Image load failed for Base64, falling back to URL:', url);
         resolve(url);
       };
-      img.src = url;
+      img.src = bustUrl;
     });
   };
 
@@ -105,7 +109,6 @@ const MovieDetails = () => {
 
     toast.loading('Generating shareable poster...', { id: 'share' });
     try {
-      // Attempt Base64 conversion but don't let it crash the whole flow
       const posterUrl = `https://image.tmdb.org/t/p/w500${movie?.poster_path}`;
       const [posterBase64, avatarBase64] = await Promise.all([
         getBase64Image(posterUrl),
@@ -117,12 +120,14 @@ const MovieDetails = () => {
         avatar: avatarBase64 || user?.avatar 
       });
 
-      // Allow DOM to update
+      // Allow DOM and images to update/render
       setTimeout(async () => {
         try {
           const dataUrl = await domtoimage.toPng(posterRef.current, {
             quality: 1,
             bgcolor: '#0a0a0a',
+            width: 450, // Force consistent width
+            height: 800 // Force consistent height
           });
           
           const link = document.createElement('a');
@@ -134,7 +139,7 @@ const MovieDetails = () => {
           console.error('Final capture error:', innerErr);
           toast.error('Failed to capture final image.', { id: 'share' });
         }
-      }, 600);
+      }, 800);
     } catch (err) {
       console.error('Share process error:', err);
       toast.error('Failed to prepare sharing materials.', { id: 'share' });
@@ -388,22 +393,25 @@ const MovieDetails = () => {
                   objectFit: 'cover',
                   display: 'block'
                 }}
+                crossOrigin="anonymous"
               />
             </div>
             
             {/* Movie Poster */}
             <div style={{ 
               width: '100%', 
-              aspectRatio: '2/3', 
+              height: '530px', // Fixed height for better compatibility than aspect-ratio
               borderRadius: '8px', 
               overflow: 'hidden', 
               border: '1px solid rgba(255,255,255,0.1)',
-              display: 'block'
+              display: 'block',
+              backgroundColor: '#1a1a1a' // Fallback color
             }}>
               <img 
                 src={shareData.poster || `https://image.tmdb.org/t/p/w500${movie?.poster_path}`} 
                 alt=""
                 style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                crossOrigin="anonymous"
               />
             </div>
 
