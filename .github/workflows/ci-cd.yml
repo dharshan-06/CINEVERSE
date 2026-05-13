@@ -6,22 +6,33 @@ on:
       - main
 
 jobs:
-  build-and-encrypt:
+  build-and-test:
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Source Code
+
+      # Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Setup Node
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      # Install Backend Dependencies
       - name: Install Backend Dependencies
-        run: |
-          npm install
+        working-directory: ./backend
+        run: npm install
 
+      # Install Frontend Dependencies
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      # Configure AWS Credentials
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -29,16 +40,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Run AWS KMS Encryption
+      # Test AWS KMS
+      - name: Test AWS KMS Integration
+        working-directory: ./backend
         env:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           KMS_KEY_ID: ${{ secrets.KMS_KEY_ID }}
         run: |
-          node kmsEncrypt.js
+          node testKms.js
 
-      - name: Build React App
-        run: |
-          npm run build
+      # Build React Frontend
+      - name: Build React Frontend
+        working-directory: ./frontend
+        run: npm run build
 
-      - name: CI/CD Success
-        run: echo "Pipeline executed successfully"
+      # Success Message
+      - name: Pipeline Success
+        run: echo "CI/CD Pipeline executed successfully!"

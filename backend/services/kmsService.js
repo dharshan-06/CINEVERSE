@@ -5,20 +5,19 @@ const kms = new AWS.KMS({
 });
 
 const decryptSecret = async (encryptedData) => {
-  if (!encryptedData || !encryptedData.startsWith('kms:')) {
-    // If it doesn't start with 'kms:', assume it's already decrypted (fallback for local dev)
-    return encryptedData;
-  }
-
   try {
+
+    // Remove "kms:" prefix if present
+    const cleanData = encryptedData.replace('kms:', '');
+
     const data = await kms.decrypt({
-      CiphertextBlob: Buffer.from(encryptedData.replace('kms:', ''), 'base64')
+      CiphertextBlob: Buffer.from(cleanData, 'base64')
     }).promise();
-    
+
     return data.Plaintext.toString('utf-8');
+
   } catch (error) {
     console.error('KMS Decryption Error:', error);
-    // Return original if decryption fails (might be local dev env)
     return encryptedData;
   }
 };
